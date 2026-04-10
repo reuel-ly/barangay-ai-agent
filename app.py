@@ -1,0 +1,21 @@
+from fastapi import FastAPI
+from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
+from rag.query_data import query_rag
+
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+class QueryRequest(BaseModel):
+    question: str
+
+@app.post("/ask")
+async def ask(request: QueryRequest):
+    return query_rag(request.question, history=[])

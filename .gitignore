@@ -1,0 +1,20 @@
+*.pyc
+.DS_Store
+backup
+chroma
+
+# Ignore Python cache directories
+__pycache__/
+
+# Ignore VS Code workspace settings
+.vscode/
+
+# Ignore absolutely everything inside folder
+credentials/*
+!credentials/.gitkeep
+
+token files/*
+!token files/.gitkeep
+
+# Ignore contributors python environment file
+grundfos/
