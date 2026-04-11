@@ -10,6 +10,7 @@ export default function App() {
       <Navbar />
       <HeroSection />
       <FooterLinks />
+      <ChatbotWidget />
     </div>
   );
 }
