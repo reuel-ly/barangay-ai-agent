@@ -76,7 +76,7 @@ export default function ChatbotWidget() {
           {/* Header */}
           <div className="bg-blue-600 text-white p-4 flex justify-between items-center">
             <span className="font-semibold">
-              Pump Selection Assistant
+              Barangay Assistant
             </span>
             <button onClick={() => setIsOpen(false)}>✕</button>
           </div>
@@ -85,7 +85,7 @@ export default function ChatbotWidget() {
           <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-gray-50">
             {messages.length === 0 && (
               <p className="text-sm text-gray-400">
-                Ask your HVAC pump question...
+                What's your inquiry? ...
               </p>
             )}
 
