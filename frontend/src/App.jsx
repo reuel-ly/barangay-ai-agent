@@ -1,16 +1,12 @@
-import Navbar from "./components/Navbar";
-import HeroSection from "./components/HeroSection";
 import FooterLinks from "./components/FooterLinks";
-import ChatbotWidget from "./components/ChatbotWidget";
+import HomePage from "./components/Homepage";
 
 
 export default function App() {
   return (
     <div className="font-sans">
-      <Navbar />
-      <HeroSection />
+      <HomePage />
       <FooterLinks />
-      <ChatbotWidget />
     </div>
   );
 }
