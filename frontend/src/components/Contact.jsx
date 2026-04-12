@@ -1,3 +1,5 @@
+import ChatbotWidget from "./ChatbotWidget";
+
 export default function Contact() {
   return (
     <div className="pt-32 px-6 text-center">
@@ -7,6 +9,7 @@ export default function Contact() {
         📞 0912-345-6789 <br />
         📧 barangay@email.com
       </p>
+      <ChatbotWidget />
     </div>
   );
 }

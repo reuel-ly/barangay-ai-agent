@@ -1,3 +1,5 @@
+import ChatbotWidget from "./ChatbotWidget";
+
 export default function About() {
   return (
     <div className="pt-32 px-6 text-center">
@@ -6,6 +8,7 @@ export default function About() {
         Our barangay is dedicated to serving the community by providing
         accessible services, transparency, and development programs.
       </p>
+      <ChatbotWidget />
     </div>
   );
 }
