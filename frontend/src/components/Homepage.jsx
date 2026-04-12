@@ -1,13 +1,8 @@
-import Navbar from "./Navbar"
-import ChatbotWidget from "./ChatbotWidget"
+import ChatbotWidget from "./ChatbotWidget";
 
-export default function HomePage() {
+export default function Homepage() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      {/* Top Navigation */}
-      <Navbar />
-
-      {/* Main Content */}
       <main className="flex flex-col items-center justify-center text-center flex-grow p-10">
         <h1 className="text-4xl font-bold text-gray-800 mb-4">
           Welcome to Barangay [Your Barangay Name]
@@ -24,8 +19,7 @@ export default function HomePage() {
         </p>
       </main>
 
-      {/* Floating Chatbot */}
       <ChatbotWidget />
     </div>
-  )
+  );
 }
