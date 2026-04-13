@@ -9,8 +9,8 @@ from ragas.embeddings import LangchainEmbeddingsWrapper
 from langchain_ollama import OllamaEmbeddings
 import numpy as np
 
-from settings import LLM_MODEL, EMBEDDING_MODEL, K_similarity, PROMPT_TEXT
-from get_embedding_function import get_embedding_function
+from rag.settings import LLM_MODEL, EMBEDDING_MODEL, K_similarity, PROMPT_TEXT
+from rag.get_embedding_function import get_embedding_function
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 CHROMA_PATH = BASE_DIR / "chroma"
