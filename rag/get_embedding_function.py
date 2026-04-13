@@ -1,6 +1,6 @@
 # from langchain_community.embeddings import BedrockEmbeddings
 from langchain_ollama import OllamaEmbeddings
-from settings import EMBEDDING_MODEL
+from rag.settings import EMBEDDING_MODEL
 
 def get_embedding_function():
     """
