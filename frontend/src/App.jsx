@@ -1,15 +1,18 @@
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
-import HeroSection from "./components/HeroSection";
-import FooterLinks from "./components/FooterLinks";
-import ChatbotWidget from "./components/ChatbotWidget";
-
+import Homepage from "./components/Homepage";
+import About from "./components/About";
+import Contact from "./components/Contact";
 
 export default function App() {
   return (
-    <div className="font-sans">
+    <Router>
       <Navbar />
-      <HeroSection />
-      <FooterLinks />
-    </div>
+      <Routes>
+        <Route path="/" element={<Homepage />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+      </Routes>
+    </Router>
   );
 }
