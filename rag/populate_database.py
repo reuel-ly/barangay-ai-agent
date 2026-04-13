@@ -1,16 +1,15 @@
 import argparse
 import os
 import shutil
-import re                          # ← add this import
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
 from langchain_chroma import Chroma
 from pathlib import Path
-import pymupdf4llm
+from langchain_text_splitters import MarkdownHeaderTextSplitter
 
 # Local Imports
-from get_embedding_function import get_embedding_function
-from settings import CHUNK_SIZE, CHUNK_OVERLAP
+from rag.get_embedding_function import get_embedding_function
+from rag.settings import CHUNK_SIZE, CHUNK_OVERLAP
 
 # Define paths
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -32,114 +31,68 @@ def init_database():
     inspect_chunks(chunks)
     add_to_chroma(chunks)
 
-def clean_content(text: str) -> str:
-    """Remove entire lines containing noise patterns."""
 
-    # Each pattern removes the whole line it matches
-    noise_lines = [
-        r".*\*\*Company name:\*\*.*",
-        r".*\*\*Created by:\*\*.*",
-        r".*\*\*Phone:\*\*.*",
-        r".*\*\*Date:\*\*.*",
-        r".*\*\*Qty\.\*\*.*",
-        r".*\*\*Note!.*",
-        r".*Printed from Grundfos.*",
-        r".*Pumped liquid = Water.*",
-        r".*Density = .*kg/m.*",
-        r".*Liquid temperature during operation.*",
-        r".*Example of mains-connected motor.*",
-        r".*with mains switch.*",
-    ]
-    for pattern in noise_lines:
-        text = re.sub(pattern, "", text, flags=re.IGNORECASE | re.MULTILINE)
-
-    # Remove graph axis number sequences
-    text = re.sub(r"^(\*\*\d+\*\*\s*){3,}$", "", text, flags=re.MULTILINE)
-    text = re.sub(r"^(\d+\s*){4,}$", "", text, flags=re.MULTILINE)
-
-    # Remove graph axis labels
-    text = re.sub(r".*eta\s*\[%\].*", "", text, flags=re.IGNORECASE | re.MULTILINE)
-    text = re.sub(r".*H\s*\[m\].*", "", text, flags=re.IGNORECASE | re.MULTILINE)
-    text = re.sub(r".*P1\s*\[\w+\].*", "", text, flags=re.IGNORECASE | re.MULTILINE)
-    text = re.sub(r".*Q\s*\[m[³3]/h\].*", "", text, flags=re.IGNORECASE | re.MULTILINE)
-
-    # Remove empty markdown table rows
-    text = re.sub(r"(\|\s*\|)+", "", text)
-    text = re.sub(r"^\|[-| ]+\|$", "", text, flags=re.MULTILINE)
-
-    # Remove connector pressure labels
-    text = re.sub(r".*PN\s*\d+/?\d*.*", "", text, flags=re.MULTILINE)
-
-    # Collapse multiple blank lines into one
-    text = re.sub(r"\n{3,}", "\n\n", text)
-
-    return text.strip()
 
 # ── Update load_documents to use clean_content ────────────────
 def load_documents(data_path: str) -> list[Document]:
     documents = []
 
     for filename in os.listdir(data_path):
-        if not filename.endswith('.pdf'):
+        if not filename.endswith('.md'):
             continue
 
-        pdf_path = os.path.join(data_path, filename)
-        product_name = filename.replace(".pdf", "").replace("_", " ")
+        md_path = os.path.join(data_path, filename)
+        source_name = filename.replace(".md", "").replace("_", " ")
         print(f"Processing: {filename}")
 
-        pages = pymupdf4llm.to_markdown(pdf_path, page_chunks=True)
-        first_page_content = ""
+        with open(md_path, "r", encoding="utf-8") as f:
+            content = f.read()
 
-        for page in pages:
-            content = page["text"].strip()
-            if not content:
-                continue
+        doc = Document(
+            page_content=content,
+            metadata={
+                "source": md_path,
+                "page": 0,
+                "product_name": source_name,
+                "type": "text",
+            }
+        )
+        documents.append(doc)
 
-            # ← Clean noise before storing
-            content = clean_content(content)
-
-            if len(content) < 50:
-                print(f"  ⏭ Skipping page {page['metadata']['page']} (too short after cleaning)")
-                continue
-
-            page_num = page["metadata"]["page"]
-
-            if page_num == 1:
-                first_page_content = content
-                content_with_context = f"Product: {product_name}\n\n{content}"
-            else:
-                # Spec pages — label clearly so embedding finds them
-                content_with_context = f"""Product: {product_name}
-Specification sheet for {product_name}
-
-{content}"""
-
-            documents.append(Document(
-                page_content=content_with_context,
-                metadata={
-                    "source":  pdf_path,
-                    "page":    page_num,
-                    "type":    "text",
-                    "product": product_name
-                }
-            ))
-
-        print(f"  ✅ Done: {filename} — {len(pages)} pages")
+        print(f"  ✅ Done: {filename}")
 
     print(f"\n✅ Loaded {len(documents)} documents")
     return documents
 
-
 # ── Everything below unchanged ────────────────────────────────
+from langchain_text_splitters import MarkdownHeaderTextSplitter
+
 def split_documents(documents: list[Document]):
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=CHUNK_SIZE,
-        chunk_overlap=CHUNK_OVERLAP,
+    headers_to_split_on = [
+        ("#",  "section"),
+        ("##", "process"),
+        ("###","subsection"),
+    ]
+    md_splitter = MarkdownHeaderTextSplitter(
+        headers_to_split_on=headers_to_split_on,
+        strip_headers=False,
     )
-    split_texts = text_splitter.split_documents(documents)
-    MIN_CHUNK_SIZE = 50
-    split_texts = [chunk for chunk in split_texts if len(chunk.page_content.strip()) >= MIN_CHUNK_SIZE]
-    return split_texts
+
+    all_chunks = []
+    for doc in documents:
+        splits = md_splitter.split_text(doc.page_content)
+        for i, split in enumerate(splits):
+            # Carry over parent metadata
+            split.metadata.update({
+                "source": doc.metadata.get("source"),
+                "page":   i,
+                "type":   "text",
+            })
+            all_chunks.append(split)
+
+    # Filter out tiny chunks
+    all_chunks = [c for c in all_chunks if len(c.page_content.strip()) >= 50]
+    return all_chunks
 
 
 def add_to_chroma(chunks: list[Document]):
