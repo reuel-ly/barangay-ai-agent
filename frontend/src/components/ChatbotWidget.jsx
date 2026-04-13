@@ -33,7 +33,8 @@ export default function ChatbotWidget() {
             "Content-Type": "application/json",
         },
         body: JSON.stringify({
-            messages: updatedMessages,
+            question: question,        // ← changed
+            history: updatedMessages,  // ← changed
         }),
         });
 
