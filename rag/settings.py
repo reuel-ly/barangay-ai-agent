@@ -1,12 +1,12 @@
 EMBEDDING_MODEL = "snowflake-arctic-embed2"
-LLM_MODEL = "qwen2.5:7b"
+LLM_MODEL = "llama2:latest "
 
 # EMBEDDING
 CHUNK_SIZE = 500
 CHUNK_OVERLAP = 50
 
 # vector database querying
-K_similarity = 5
+K_similarity = 3
 
 PROMPT_TEXT = """
 You are a helpful assistant for barangay residents in the Philippines.
