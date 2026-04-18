@@ -211,7 +211,7 @@ export default function ChatbotWidget() {
       )}
 
       {isOpen && (
-        <div className="w-96 h-[500px] bg-white shadow-2xl rounded-2xl flex flex-col overflow-hidden border">
+        <div className="w-96 h-125 bg-white shadow-2xl rounded-2xl flex flex-col overflow-hidden border">
           <div className="bg-blue-600 text-white p-4 flex justify-between items-center">
             <span className="font-semibold">Barangay Assistant</span>
             <button onClick={() => setIsOpen(false)}>✕</button>
