@@ -1,10 +1,29 @@
 import { useState, useRef, useEffect } from "react";
 
+const INITIAL_SERVICES = [
+  {
+    id: "clearance",
+    label: "Barangay Clearance",
+    prompt: "Barangay Clearance description requirements steps processing time fees",
+  },
+  {
+    id: "indigency",
+    label: "Certificate of Indigency",
+    prompt: "Certificate of Indigency description requirements steps processing time fees",
+  },
+  {
+    id: "blotter",
+    label: "Blotter Report",
+    prompt: "Blotter Report description who can file requirements steps fees",
+  },
+];
+
 export default function ChatbotWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [availableServices, setAvailableServices] = useState(INITIAL_SERVICES);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -27,40 +46,82 @@ export default function ChatbotWidget() {
     setLoading(true);
 
     try {
-        const response = await fetch("http://127.0.0.1:8000/ask", {
+      const response = await fetch("http://127.0.0.1:8000/ask", {
         method: "POST",
         headers: {
-            "Content-Type": "application/json",
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-            question: question,        // ← changed
-            history: updatedMessages,  // ← changed
+          question: question,
+          history: updatedMessages,
         }),
-        });
+      });
 
-        const data = await response.json();
+      const data = await response.json();
 
-        const botMessage = {
+      const botMessage = {
         role: "assistant",
         content: data.answer,
-        };
+      };
 
-        setMessages([...updatedMessages, botMessage]);
-
+      setMessages([...updatedMessages, botMessage]);
     } catch (error) {
-        console.error("Error:", error);
-        setMessages([
+      console.error("Error:", error);
+      setMessages([
         ...updatedMessages,
-        { role: "assistant", content: "Something went wrong." }
-        ]);
+        { role: "assistant", content: "Something went wrong." },
+      ]);
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
-    };
+  };
+
+  const handleServiceClick = async (service) => {
+    setAvailableServices((prev) => prev.filter((item) => item.id !== service.id));
+
+    const userMessage = { role: "user", content: service.label };
+    const updatedMessages = [...messages, userMessage];
+
+    setMessages(updatedMessages);
+    setLoading(true);
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/ask", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          question: service.prompt,
+          history: updatedMessages,
+        }),
+      });
+
+      const data = await response.json();
+
+      const botMessage = {
+        role: "assistant",
+        content: data.answer,
+      };
+
+      setMessages([...updatedMessages, botMessage]);
+    } catch (error) {
+      console.error("Error:", error);
+      setMessages([
+        ...updatedMessages,
+        { role: "assistant", content: "Something went wrong." },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetServiceButtons = () => {
+    setAvailableServices(INITIAL_SERVICES);
+  };
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
-      {/* Bubble */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
@@ -70,24 +131,39 @@ export default function ChatbotWidget() {
         </button>
       )}
 
-      {/* Chat Window */}
       {isOpen && (
-        <div className="w-96 h-125 bg-white shadow-2xl rounded-2xl flex flex-col overflow-hidden border">
-          
-          {/* Header */}
+        <div className="w-96 h-[500px] bg-white shadow-2xl rounded-2xl flex flex-col overflow-hidden border">
           <div className="bg-blue-600 text-white p-4 flex justify-between items-center">
-            <span className="font-semibold">
-              Barangay Assistant
-            </span>
+            <span className="font-semibold">Barangay Assistant</span>
             <button onClick={() => setIsOpen(false)}>✕</button>
           </div>
 
-          {/* Messages */}
           <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-gray-50">
+            <div className="flex flex-wrap gap-2">
+              {availableServices.map((service) => (
+                <button
+                  key={service.id}
+                  onClick={() => handleServiceClick(service)}
+                  disabled={loading}
+                  className="px-3 py-2 rounded-full bg-blue-100 text-blue-700 text-xs font-medium hover:bg-blue-200 transition disabled:opacity-50"
+                >
+                  {service.label}
+                </button>
+              ))}
+
+              {availableServices.length === 0 && (
+                <button
+                  onClick={resetServiceButtons}
+                  type="button"
+                  className="px-3 py-2 rounded-full bg-gray-200 text-gray-700 text-xs font-medium hover:bg-gray-300 transition"
+                >
+                  Show options again
+                </button>
+              )}
+            </div>
+
             {messages.length === 0 && (
-              <p className="text-sm text-gray-400">
-                What's your inquiry? ...
-              </p>
+              <p className="text-sm text-gray-400">What's your inquiry? ...</p>
             )}
 
             {messages.map((msg, index) => (
@@ -103,18 +179,12 @@ export default function ChatbotWidget() {
               </div>
             ))}
 
-            {loading && (
-              <p className="text-gray-400 text-sm">Thinking...</p>
-            )}
+            {loading && <p className="text-gray-400 text-sm">Thinking...</p>}
 
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input */}
-          <form
-            onSubmit={handleAsk}
-            className="p-3 border-t flex gap-2"
-          >
+          <form onSubmit={handleAsk} className="p-3 border-t flex gap-2">
             <input
               type="text"
               value={question}
