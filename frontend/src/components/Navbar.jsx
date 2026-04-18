@@ -6,11 +6,11 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <img
-            src="/logo.png"
+            src="https://tse2.mm.bing.net/th/id/OIP.dNXAo-a-LGYr2iw8iCCSlQHaHd?rs=1&pid=ImgDetMain&o=7&rm=3"
             alt="logo"
             className="w-8 h-8 object-contain"
           />
-          <span className="text-lg font-semibold">MyWebsite</span>
+          <span className="text-lg font-semibold">Smart Barrio</span>
         </div>
 
         <ul className="flex items-center gap-10 text-sm font-medium">
