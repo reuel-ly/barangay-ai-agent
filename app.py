@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from rag.query_data import query_rag
+from router_agent.router_agent import detect_intent
+from calendar_agent.calendar_agent import handle_calendar
 from typing import List, Optional
 
 app = FastAPI()
@@ -20,9 +22,23 @@ class Message(BaseModel):
 
 class QueryRequest(BaseModel):
     question: str
-    history: Optional[List[Message]] = []   # ← accept history from frontend
+    history: Optional[List[Message]] = []
 
 @app.post("/ask")
 async def ask(request: QueryRequest):
     history = [{"role": m.role, "content": m.content} for m in request.history]
-    return query_rag(request.question, history=history)
+
+    # Detect intent
+    intent = detect_intent(request.question)
+
+    # Route to the right agent
+    if intent == "calendar":
+        response = await handle_calendar(request.question, history=[])
+    else:
+        response = query_rag(request.question, history=history)
+
+    # Return with intent label (useful for debugging / frontend)
+    return {
+        **response,               # keeps whatever query_rag already returns
+        "intent": intent          # adds intent so frontend knows what happened
+    }
