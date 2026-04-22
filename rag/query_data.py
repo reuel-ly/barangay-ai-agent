@@ -44,6 +44,7 @@ def clear_history() -> list:
 
 # ─── RAG ──────────────────────────────────────────────────────
 def query_rag(query_text: str, history: list) -> dict:
+    print("Answering Question...")
     embedding_function = get_embedding_function()
     db = Chroma(
         persist_directory=CHROMA_PATH,
