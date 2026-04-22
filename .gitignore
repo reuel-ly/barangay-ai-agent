@@ -16,6 +16,7 @@ credentials/*
 
 token files/*
 !token files/.gitkeep
+token.json
 
 # Ignore contributors python environment file
 grundfos/
