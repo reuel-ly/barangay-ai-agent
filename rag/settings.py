@@ -1,5 +1,5 @@
 EMBEDDING_MODEL = "snowflake-arctic-embed2"
-LLM_MODEL = "llama2:latest "
+LLM_MODEL = "llama2:latest"
 
 # EMBEDDING
 CHUNK_SIZE = 500
